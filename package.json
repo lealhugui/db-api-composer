@@ -1,0 +1,36 @@
+{
+  "name": "db-api-composer",
+  "version": "0.0.1",
+  "description": "Expose your data with no fuss",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "WEB_DEBUG=1 node src/server.js",
+    "start:sync": "WEB_DEBUG=1 SYNC=1 node src/server.js",
+    "debug:server": "WEB_DEBUG=1 node --inspect src/server.js",
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lealhugui/db-api-composer.git"
+  },
+  "keywords": [
+    "database",
+    "nodejs",
+    "express",
+    "sequelizejs",
+    "api"
+  ],
+  "author": "Guilherme Leal",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lealhugui/db-api-composer/issues"
+  },
+  "homepage": "https://github.com/lealhugui/db-api-composer#readme",
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "cors": "^2.8.4",
+    "express": "^4.16.1",
+    "sequelize": "^4.13.2",
+    "sqlite3": "^3.1.13"
+  }
+}
