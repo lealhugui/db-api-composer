@@ -33,12 +33,10 @@ class AbstractService {
   }
 
   /**
-   * Retorna uma Promise de um registro de uma model (selecionado pelo Id).
+   * Retorna a instancia de uma model
    * Leva em conta o contexto do serviço.
-   * @param modelName: nome da model
-   * @param modelId: id do registro. Caso nao seja informado, o metodo retornará uma instancia limpa.
    */
-  _getMdlInstance(modelName, modelId = null) {
+  _getMdlInstance(modelName) {
     return new Promise((resolve, reject) => {
       reject((new NotImplementedError()).toString())
     });
@@ -61,7 +59,7 @@ class AbstractService {
    * Levando em conta o contexto do serviço.
    * @param modelInstance: instancia da model
    */
-  _saveMdlInstance(modelName, data) {
+  _saveMdlInstance(data) {
     return new Promise((resolve, reject) => {
       reject((new NotImplementedError()).toString())
     });
@@ -80,8 +78,12 @@ class AbstractService {
    */
   _getService(serviceName, context = null) {
     if (!services.hasOwnProperty(serviceName))
-      throw new ServiceError("Serviço não encontrado")
+      throw new ServiceError("Serviço não encontrado");
     return new (services[serviceName])(context);
+  }
+
+  async _getMdlById(modelName, modelId){
+    throw new NotImplementedError();
   }
 
   /**
@@ -101,25 +103,37 @@ class AbstractService {
 /**
  * Classe de serviço transacional. Caso nao seja instanciada passando um context, ira instanciar uma nova transação no contexto.
  */
-class TransactionalSercice extends AbstractService {
+class TransactionalService extends AbstractService {
+
+  /**
+   * Hook executado apos o tratamento do context da instancia do Service.
+   * @private
+   */
+  _afterInit() {
+    return;
+  }
 
   _init(context) {
     super._init(context);
     if(this.ctx.transaction === null)
       this.ctx.transaction = models.sequelize.transaction();
+    this._afterInit();
   }
 
-  _getMdlInstance(modelName, modelId = null) {
-    if (modelId = null) return new models[modelName]();
-
-    return this.ctx.transaction.then(function (t) {
-      return models[modelName].findById(modelId, {transaction: t});
-    });
+  _getMdlInstance(modelName) {
+    return new models[modelName]();
   }
 
   _getMdlRecordSet(modelName, where) {
     return this.ctx.transaction.then(function (t) {
       return models[modelName].findAll(where, {transaction: t});
+    });
+  }
+
+  async _getMdlById(modelName, modelId){
+    this.ctx.transaction.then(function (t) {
+      let result = models[modelName].findById(modelId, {transaction: t})
+      return result;
     });
   }
 
@@ -129,19 +143,19 @@ class TransactionalSercice extends AbstractService {
     });
   }
 
-  _saveMdlInstance(modelName, data) {
+  _saveMdlInstance(data) {
     return this.ctx.transaction.then(function (t) {
-      return models[modelName].update(data, {transaction: t});
+      return data.save({transaction: t});
     });
   }
 }
-exports.TransactionalSercice = TransactionalSercice;
+exports.TransactionalService = TransactionalService;
 
 /**
- * Classe para exposição de TransactionalSercices na interface REST. Fornece metodos para implementação de actions
+ * Classe para exposição de TransactionalServices na interface REST. Fornece metodos para implementação de actions
  * de acordo com os metodos HTTP POST|GET|DELETE (devem ser sobreescritos para que sejam habilitados).
  */
-class ExternalTransactionalService extends TransactionalSercice {
+class ExternalTransactionalService extends TransactionalService {
 
   _doPost(opt) {
     return new Promise((resolve, reject) => {
