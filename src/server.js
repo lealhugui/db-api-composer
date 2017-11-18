@@ -1,46 +1,30 @@
 const models = require('./models');
 const http = require('http');
 
-function createLocalServer(app, sync=false) {
-  const debug = console.log;
-  const port = normalizePort(process.env.SERV_PORT || '4201');
-  app.set('port', port);
-  const server = http.createServer(app);
+function createLocalServer(app, sync = false) {
+    const debug = console.log;
+    const port = normalizePort(process.env.SERV_PORT || '4201');
+    app.set('port', port);
+    const server = http.createServer(app);
 
     const serverListen = (server) => {
-      /**
-       * Listen on provided port, on all network interfaces.
-       */
-      server.listen(port, function () {
-        debug('Express server listening on port ' + server.address().port);
-      });
-      server.on('error', onError);
-      server.on('listening', onListening);
+        /**
+         * Listen on provided port, on all network interfaces.
+         */
+        server.listen(port, function () {
+            debug('Express server listening on port ' + server.address().port);
+        });
+        server.on('error', onError);
+        server.on('listening', onListening);
     };
 
     if (sync) {
-      models.sequelize.sync({force: true}).then(function () {
-        /*
-        //TESTE DE DADOS
-        models.UnidadeMedida.create({
-          codigo: "123",
-          descricao: "Unidade"
-        }).then((un) => {
-          "use strict";
-
-          for(let i=1; i<11; i++){
-            models.Produto.create({
-              descricao: `Produto-${i}`,
-              preco: 17*i,
-              UnidadeMedidaId: un.id
-            })
-          }
-        }) */
-        serverListen(server);
-      });
+        models.sequelize.sync({force: true}).then(function () {
+            serverListen(server);
+        });
     }
-    else{
-      serverListen(server);
+    else {
+        serverListen(server);
     }
 
 
@@ -76,15 +60,15 @@ function createLocalServer(app, sync=false) {
         // handle specific listen errors with friendly messages
         switch (error.code) {
             case 'EACCES':
-            console.error(bind + ' requires elevated privileges');
-            process.exit(1);
-            break;
+                console.error(bind + ' requires elevated privileges');
+                process.exit(1);
+                break;
             case 'EADDRINUSE':
-            console.error(bind + ' is already in use');
-            process.exit(1);
-            break;
+                console.error(bind + ' is already in use');
+                process.exit(1);
+                break;
             default:
-            throw error;
+                throw error;
         }
     }
 
@@ -93,16 +77,16 @@ function createLocalServer(app, sync=false) {
      */
 
     function onListening() {
-    const addr = server.address();
-    const bind = typeof addr === 'string'
-        ? 'pipe ' + addr
-        : 'port ' + addr.port;
-    debug('Listening on ' + bind);
+        const addr = server.address();
+        const bind = typeof addr === 'string'
+            ? 'pipe ' + addr
+            : 'port ' + addr.port;
+        debug('Listening on ' + bind);
     }
 }
 
-if(process.env.WEB_DEBUG==1){
-    createLocalServer(require('./app'), process.env.SYNC==1);
+if (process.env.WEB_DEBUG == 1) {
+    createLocalServer(require('./app'), process.env.SYNC == 1);
 } else {
     module.exports = createLocalServer;
 }
